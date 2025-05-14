@@ -23,11 +23,15 @@ class MeetingSummaryRequest(BaseModel):
     creator_name: str
     date: str
 
+class AgendaSummaryRequest(BaseModel):
+    agenda: str
+    title: str
+
 class CustomPromptRequest(BaseModel):
     custom_prompt: str
 
 # In-memory store for custom prompts
-custom_prompt = "يرجى تقديم ملخص موجز ومهني لمحضر الاجتماع التالي بدون اي marking down, اكتب العنوان في الاول ثم التلخيص ثم اسم الشخص و التاريخ"
+custom_prompt = "يرجى تقديم ملخص موجز ومهني لمحضر الاجتماع التالي بدون اي marking down, اكتب العنوان في الاول ثم التلخيص ثم اسم الشخص و التاريخ. اذا كان بالعربية لحص بالعربية و اذا كان يالانجليزية لخص بالانحليزية. يجب انغلب الطابع الرسمي علي التلخيص." 
 
 # Endpoint to summarize minutes of the meeting
 @app.post("/summarize")
@@ -42,6 +46,34 @@ async def summarize_meeting(request: MeetingSummaryRequest):
             f"Creator: {request.creator_name}\n"
             f"Date: {request.date}\n\n"
             f"Minutes:\n{request.minutes}"
+        )
+        
+        # Call DeepSeek model
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant"},
+                {"role": "user", "content": input_text},
+            ],
+            stream=False
+        )
+
+        # Extract and return the summary
+        summary = response.choices[0].message.content
+        return {"summary": summary}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error while generating summary: {e}")
+
+@app.post("/summarize-agenda")
+async def summarize_agenda(request: AgendaSummaryRequest):
+    try:
+        agenda_prompt = "لخص بند الاعمال هذا باللغة التي ياتي بها٬ اذا كان بالعربية لحص بالعربية و اذا كان يالانجليزية لخص بالانحليزية. يجب انغلب الطابع الرسمي علي التلخيص." 
+        
+        # Prepare input for DeepSeek model
+        input_text = (
+            f"{agenda_prompt}\n\n"
+            f"Title: {request.title}\n"
+            f"Agenda:\n{request.minutes}"
         )
         
         # Call DeepSeek model
