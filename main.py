@@ -85,7 +85,6 @@ async def customize_prompt(request: CustomPromptRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error while updating custom prompt: {e}")
 
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
