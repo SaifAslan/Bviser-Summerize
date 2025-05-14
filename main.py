@@ -1,12 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import OpenAI  # Import OpenAI for DeepSeek client
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
 
 # Initialize OpenAI client for DeepSeek
-client = OpenAI(api_key="sk-b9a02b0c3bc04df3a8c828730b123f34", base_url="https://api.deepseek.com")
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENAI_API_KEY is not set")
+client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
 
 # Models for request and response bodies
 class MeetingSummaryRequest(BaseModel):
