@@ -3,12 +3,24 @@ from pydantic import BaseModel
 from openai import OpenAI  # Import OpenAI for DeepSeek client
 import os
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # Load environment variables
 load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
+
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # List the allowed origins (use "*" to allow all origins during development)
+    allow_credentials=True,
+    allow_methods=["*"],  # HTTP methods to allow
+    allow_headers=["*"],  # HTTP headers to allow
+)
 
 # Initialize OpenAI client for DeepSeek
 api_key = os.getenv("OPENAI_API_KEY")
@@ -124,6 +136,11 @@ async def customize_prompt(request: CustomPromptRequest):
         return {"message": "Custom prompt updated successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error while updating custom prompt: {e}")
+
+from fastapi.middleware.cors import CORSMiddleware
+
+
+
 
 if __name__ == "__main__":
     import uvicorn
